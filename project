@@ -1,0 +1,259 @@
+import java.util.Scanner;
+
+import org.w3c.dom.Node;
+
+public class LinkedList<E extends Comparable<E>> { 
+
+	//---------------- nested Node class ----------------
+	private static class Node<E> { 
+		private E data; 			// reference to the data stored at this node
+		private Node<E> next; 		// reference to the subsequent node in the list
+		public Node(E e, Node<E> n) { 
+			data = e;
+			next = n;
+		} 
+		public E getData( ) { 
+			return data; } 
+		public Node<E> getNext( ) { 
+			return next; } 
+		public void setNext(Node<E> n) { 
+			next = n; } 
+	} 
+
+	// instance variables of the LinkedList
+	private Node<E> head = null; 	// head node of the list (or null if empty)
+	private Node<E> tail = null; 	// last node of the list (or null if empty)
+	private int size = 0; 			// number of nodes in the list
+
+	public LinkedList( ) { } 		// constructs an initially empty list
+
+	// access methods
+	public int size( ) { 
+		return size; }
+	
+	public boolean isEmpty( ) { 
+		return size == 0; } 
+	
+	public E first( ) { 			// returns (but does not remove) the first data
+		if (isEmpty( )) 
+			return null;
+		return head.getData( );
+	} 
+	
+	public E last( ) { 				// returns (but does not remove) the last data
+		if (isEmpty( )) 
+			return null;
+		return tail.getData( );
+	} 
+	
+	// update methods
+	public void addFirst(E e) { 	// adds data e to the front of the list
+		head = new Node<>(e, head); // create and link a new node
+		if (size == 0)
+			tail = head; 			// special case: new node becomes tail also
+		size++;
+	} 
+	
+	public void addLast(E e) { 		// adds data e to the end of the list
+		Node<E> newest = new Node<>(e, null); // node will eventually be the tail
+		if (isEmpty( ))
+			head = newest; 			// special case: previously empty list
+		else
+			tail.setNext(newest); 	// new node after existing tail
+		tail = newest; 				// new node becomes the tail
+		size++;
+	} 
+	
+	public E removeFirst( ) { 		// removes and returns the first data
+		if (isEmpty( )) return null; // nothing to remove
+		E answer = head.getData( );
+		head = head.getNext( ); 	// will become null if list had only one node
+		size--;
+		if (size == 0)
+			tail = null; 			// special case as list is now empty
+		return answer;
+	} 
+	
+	public E removeLast( ) { 		// removes and returns the last data
+		if (isEmpty( )) return null; // nothing to remove
+		E answer = tail.getData( );
+		if (head == tail) {			// check for only one item on the list
+			head = null;
+			tail = null;
+			size = 0;
+			return answer;
+		}
+		Node<E> p = head;			// find the next to last item
+		Node<E> prev;
+		do {
+			prev = p;
+			p = p.getNext( );
+		} while (p != tail);
+		tail = prev;				// make the next to last item the last item
+		prev.next = null;
+		size--;
+		return answer;
+	} 
+	
+	public int indexOf(E e) {		// return the position of a value in the list
+		if (isEmpty()) return -1;
+		Node<E> p = head;
+		for (int i = 0; i<size; i++) {
+			if (e.equals(p.getData( )))
+				return i;
+			p = p.getNext();
+		}
+		return -1;
+	}
+		
+	public boolean contains(E e) {
+		return indexOf(e) >= 0;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o == null) return false;
+		if (! (o instanceof LinkedList)) return false;
+		LinkedList<E> list2 = (LinkedList<E>) o;
+		if (size != list2.size) return false;
+		Node<E> p = head;
+		Node<E> q = list2.head;
+		while (p != null && q != null) {
+			if (! p.getData().equals(q.getData())) return false;
+			p = p.getNext();
+			q = q.getNext();
+		}
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		String result = "";
+		Node<E> p = head;
+		while (p != null) {
+			result = result + "," + p.getData();
+			p = p.getNext();
+		}
+		result = result.substring(1);
+		return result;
+	}
+
+
+// Implement this method
+// You may add private methods, but do not change anything above this
+	public void sort() {
+		
+		//if there is no items or only one item in the linked list, which is just the head, that means the head next reference is null
+		if (head == null || head.next == null) {
+			return;
+	
+		}
+		
+		//if there is more than one item in the list, it calls the helper method for the inductive step
+		recursiveSorting(head);
+		
+	}
+	
+	
+	private void recursiveSorting(Node<E> current) {
+		
+		//when it has reached the end of the list, nothing to sort then return
+		if (current == null) {
+			return;
+		}
+		//calling helper method that finds the minimum and helper method that swaps the data
+		Node <E> minimum = findMinNode(current);
+		swapping(current, minimum);
+		
+		recursiveSorting(current.next);
+		//recalls itself to return the next node
+		
+	}
+	
+	//helper method that find the minimum node
+	private Node<E> findMinNode(Node<E> current) {
+		
+		//setting the minimum to be the current node, which is the head of the list
+		//setting the next node of the head to be the nextNode
+		Node <E> minimum = current;
+		Node <E> nextNode = current.next;
+		
+		//checking if the next node in the list is not the tail
+		while (nextNode != null) {
+			//checking if the next node is less than the head, if so then swap
+			if (nextNode.data.compareTo(minimum.data) < 0) {
+				minimum = nextNode;
+			}
+			//setting the nextNOde to be checked as the 2nd to head
+			nextNode = nextNode.next;
+		}
+		
+		return minimum;
+		
+	}
+	
+	//helper method that helps with swapping the data of the nodes
+	private Node<E> swapping(Node<E> node1, Node<E> node2) {
+		
+		//stores the data of node1 before swapping the data between node1 and node2, to not lost the data
+		E temp = node1.data;
+		
+		//swaps the data of the first node to be data of the second node and vice versa
+		node1.data = node2.data;
+		node2.data = temp;
+		//return node 1 
+		return node1;
+	}
+
+    
+	public static void main(String[] args) {
+		Scanner s = new Scanner(System.in);
+		
+		
+		LinkedList<Integer> list1 = new LinkedList<Integer>();
+		
+		//reading the scanner when the data is integers and adding it to the linked list
+		int n = s.nextInt();
+		for (int i=0; i<n; i++) {
+			int num = s.nextInt();
+			list1.addLast(num);
+			
+		}
+		//sort the list by recursion
+		list1.sort();
+		
+		//checking if the list is not empty, then print the first and list nodes
+		if (!list1.isEmpty()) {
+		        System.out.println("First Integer: " + list1.first());
+		        System.out.println("Last Integer: " + list1.last());
+		}
+		
+		
+		
+		LinkedList<String> list2 = new LinkedList<String>();
+		
+		
+		//reading the scanner for the string values, by first giving an int for the number of lines to read, then read the line of strings and insert
+		//it into the the linked list for the string
+		int m = s.nextInt();
+		s.nextLine();
+		for (int i=0; i<m; i++) {
+			String str = s.nextLine();
+			list2.addLast(str);
+		}
+		//sorting the list by recursion
+		list2.sort();
+		
+		
+		//if the list is not empty, then print out the first and last string
+		if (!list2.isEmpty()) {
+	        System.out.println("First String: " + list2.first());
+	        System.out.println("Last String: " + list2.last());
+	    }
+		
+		
+		
+	}
+
+
+}
